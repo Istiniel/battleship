@@ -1,21 +1,45 @@
 {
-    "name": "ws_task",
-    "version": "1.0.0",
-    "description": "Template for the WebSocket remote control task",
-    "main": "index.js",
-    "type": "module",
-    "scripts": {
-        "start": "node ./index.js",
-        "start:dev": "nodemon ./index.js",
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "author": "Andrei Auchynnikau",
-    "keywords": [],
-    "license": "ISC",
-    "devDependencies": {
-        "nodemon": "^2.0.16"
-    },
-    "dependencies": {
-        "ws": "^8.8.0"
-    }
+  "name": "ws_task",
+  "version": "1.0.0",
+  "description": "Websocket based battleship game",
+  "main": "index.ts",
+  "scripts": {
+    "start": "node ./index.js",
+    "lint": "eslint . --ext .ts",
+    "start:dev": "ts-node-dev ./index.ts",
+    "start:prod": "webpack --config webpack.prod.js && node ./dist/index.js",
+    "test": "jest"
+  },
+  "author": "Edmon Kazaryan",
+  "keywords": [],
+  "license": "ISC",
+  "devDependencies": {
+    "@jest/globals": "^29.5.0",
+    "@types/jest": "^29.5.2",
+    "@types/uuid": "^9.0.2",
+    "@typescript-eslint/eslint-plugin": "^5.60.1",
+    "@typescript-eslint/parser": "^5.60.1",
+    "clean-webpack-plugin": "^4.0.0",
+    "dotenv": "^16.3.1",
+    "eslint": "^8.44.0",
+    "eslint-config-standard-with-typescript": "^36.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^15.7.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-webpack-plugin": "^4.0.1",
+    "prettier": "^2.8.8",
+    "ts-jest": "^29.1.1",
+    "ts-loader": "^9.4.4",
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.1.6",
+    "uuid": "^9.0.0",
+    "webpack": "^5.88.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1",
+    "webpack-merge": "^5.9.0"
+  },
+  "dependencies": {
+    "ws": "^8.8.0"
+  }
 }
