@@ -1,17 +1,32 @@
-// export type IPlayer = InstanceType<Player>
+import type WebSocket from 'ws'
+import { type Ship } from '../../types'
 
 export default class Player {
+  public static numberOfPlayers: number = -1
   public registrationResponse: string
-  constructor(public name: string, public password: string, public id: number) {
+  public id: number
+  constructor(
+    public name: string,
+    public password: string,
+    public ws: WebSocket,
+    public ships: Ship[] = [],
+    public isReady: boolean = false,
+  ) {
+    this.id = Player.numberOfPlayers + 1
     this.registrationResponse = JSON.stringify({
       type: 'reg',
       data: JSON.stringify({
         name,
-        index: 0,
+        index: (Player.numberOfPlayers += 1),
         error: false,
         errorText: '',
       }),
-      id,
+      id: 0,
     })
+  }
+
+  setShips(ships: Ship[]): void {
+    this.ships = ships
+    this.isReady = true
   }
 }

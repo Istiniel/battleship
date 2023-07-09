@@ -31,31 +31,58 @@ export interface UpdateWinners extends RequestBase {
   ]
 }
 
-export interface CreateRoom extends RequestBase {
+export interface CreateRoomRequest extends RequestBase {
   type: 'create_room'
   data: ''
 }
 
-export interface AddUser extends RequestBase {
+export interface AddUserRequest extends RequestBase {
   type: 'add_user_to_room'
   data: {
     indexRoom: number
   }
 }
 
+export interface RoomResponse {
+  roomId: number
+  roomUsers: [
+    {
+      name: string
+      index: number
+    },
+  ]
+}
+
 export interface UpdateRoom extends RequestBase {
   type: 'update_room'
   data: {
-    rooms: [
-      {
-        roomId: number
-        roomUsers: [
-          {
-            name: string
-            index: number
-          },
-        ]
-      },
-    ]
+    rooms: RoomResponse[]
+  }
+}
+
+export interface Ship {
+  position: {
+    x: number
+    y: number
+  }
+  direction: boolean
+  length: number
+  type: 'small' | 'medium' | 'large' | 'huge'
+}
+
+export interface AddShipsRequest extends RequestBase {
+  type: 'add_ships'
+  data: {
+    gameId: number
+    ships: Ship[]
+    indexPlayer: number
+  }
+}
+
+export interface StartGameResponse extends RequestBase {
+  type: 'start_game'
+  data: {
+    ships: Ship[]
+    currentPlayerIndex: number
   }
 }
