@@ -60,7 +60,7 @@ export interface UpdateRoom extends RequestBase {
   }
 }
 
-export interface Ship {
+export interface ShipInfo {
   position: {
     x: number
     y: number
@@ -70,11 +70,18 @@ export interface Ship {
   type: 'small' | 'medium' | 'large' | 'huge'
 }
 
+export enum ShipSize {
+  'small' = 1,
+  'medium',
+  'large',
+  'huge',
+}
+
 export interface AddShipsRequest extends RequestBase {
   type: 'add_ships'
   data: {
     gameId: number
-    ships: Ship[]
+    ships: ShipInfo[]
     indexPlayer: number
   }
 }
@@ -82,7 +89,17 @@ export interface AddShipsRequest extends RequestBase {
 export interface StartGameResponse extends RequestBase {
   type: 'start_game'
   data: {
-    ships: Ship[]
+    ships: ShipInfo[]
     currentPlayerIndex: number
+  }
+}
+
+export interface AttackRequest extends RequestBase {
+  type: 'attack'
+  data: {
+    gameId: number
+    x: number
+    y: number
+    indexPlayer: number
   }
 }

@@ -6,6 +6,7 @@ export default class Room {
   public registrationResponse: string
   public id: number
   public players: Player[]
+  public headingPlayerId: number = -1
   constructor(public playerId: number) {
     this.players = []
 
@@ -28,5 +29,24 @@ export default class Room {
     if (player !== undefined) {
       this.players.push(player)
     }
+  }
+
+  setTurn(playerId: number): void {
+    this.headingPlayerId = playerId
+    const turn = JSON.stringify({
+      type: 'turn',
+      data: JSON.stringify({ currentPlayer: playerId }),
+      id: 0,
+    })
+
+    this.players.forEach((player) => {
+      player.ws.send(turn)
+    })
+  }
+
+  setFirstTurn(): void {
+    const playerNumber = Math.round(Math.random())
+    const playerId = this.players[playerNumber].id
+    this.setTurn(playerId)
   }
 }

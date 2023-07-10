@@ -1,6 +1,12 @@
 import { EventEmitter } from 'node:events'
 import WebSocket from 'ws'
-import type { RequestBase, LoginRequest, AddUserRequest, AddShipsRequest } from '../types'
+import type {
+  RequestBase,
+  LoginRequest,
+  AddUserRequest,
+  AddShipsRequest,
+  AttackRequest,
+} from '../types'
 import createUser from '../handlers/createUser'
 import createRoom from '../handlers/createRoom'
 import { store } from '../store'
@@ -120,7 +126,84 @@ export class WebSocketServer extends EventEmitter {
 
             player1.ws.send(JSON.stringify(secondPlayerResponse))
             player2.ws.send(JSON.stringify(firstPlayerResponse))
+
+            currentGame.setFirstTurn()
             console.log(`the game ${currentGame.id} is started`)
+          }
+        }
+
+        if (request.type === 'attack') {
+          const attackRequest = request as AttackRequest
+          attackRequest.data = JSON.parse(attackRequest.data as unknown as string)
+
+          const currentGame = store.rooms.get(attackRequest.data.gameId)
+
+          const proceed = currentGame?.headingPlayerId === attackRequest.data.indexPlayer
+
+          const opponent = currentGame?.players.filter(
+            (player) => player.id !== attackRequest.data.indexPlayer,
+          )[0]
+
+          if (opponent !== undefined && proceed) {
+            const { x, y } = attackRequest.data
+            const result = opponent.checkAttack(x, y)
+
+            const response = {
+              type: 'attack',
+              data: JSON.stringify({
+                position: {
+                  x,
+                  y,
+                },
+                currentPlayer: attackRequest.data.indexPlayer,
+                status: result,
+              }),
+              id: 0,
+            }
+
+            currentGame?.players.forEach((player) => {
+              player.ws.send(JSON.stringify(response))
+            })
+
+            if (result === 'miss') {
+              currentGame?.setTurn(opponent.id)
+            } else {
+              currentGame?.setTurn(attackRequest.data.indexPlayer)
+            }
+          }
+        }
+
+        if (request.type === 'randomAttack') {
+          const attackRequest = request as AttackRequest
+          attackRequest.data = JSON.parse(attackRequest.data as unknown as string)
+
+          const currentGame = store.rooms.get(attackRequest.data.gameId)
+
+          const opponent = currentGame?.players.filter(
+            (player) => player.id !== attackRequest.data.indexPlayer,
+          )[0]
+
+          if (opponent !== undefined) {
+            const { result, x, y } = opponent.checkRandomCell()
+            console.log(result, x, y)
+            const response = {
+              type: 'attack',
+              data: JSON.stringify({
+                position: {
+                  x,
+                  y,
+                },
+                currentPlayer: attackRequest.data.indexPlayer,
+                status: result,
+              }),
+              id: 0,
+            }
+
+            currentGame?.players.forEach((player) => {
+              player.ws.send(JSON.stringify(response))
+            })
+
+            currentGame?.setTurn(opponent.id)
           }
         }
       })
