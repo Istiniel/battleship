@@ -1,3 +1,4 @@
+import updateScore from '../../handlers/updateScore'
 import { store } from '../../store'
 import type Player from './../Player/index'
 
@@ -39,9 +40,79 @@ export default class Room {
       id: 0,
     })
 
+    const loser = this.checkGameEnd()
+
+    if (loser !== -1) {
+      const finishMessage = JSON.stringify({
+        type: 'finish',
+        data: JSON.stringify({
+          winPlayer: loser,
+        }),
+        id: 0,
+      })
+
+      this.players.forEach((player) => {
+        player.ws.send(finishMessage)
+      })
+
+      updateScore()
+      console.log(`Game is over! ${loser} lost `)
+
+      return
+    }
+
     this.players.forEach((player) => {
+      console.log(`turn: your turn - ${playerId} `)
       player.ws.send(turn)
     })
+  }
+
+  checkGameEnd(): number {
+    const [player1, player2] = this.players
+
+    if (player1.isDefeated) {
+      player1.updateScore(false)
+      player2.updateScore(true)
+
+      const isPlayerInScoreTable = store.winners.some((winner) => winner.name === player2.name)
+
+      if (isPlayerInScoreTable) {
+        store.winners = store.winners.map((winner) => {
+          if (winner.name === player2.name) {
+            return { ...winner, wins: player2.wins }
+          }
+
+          return winner
+        })
+      } else {
+        store.winners.push({ name: player2.name, wins: player2.wins })
+      }
+
+      return player2.id
+    }
+
+    if (player2.isDefeated) {
+      player2.updateScore(false)
+      player1.updateScore(true)
+
+      const isPlayerInScoreTable = store.winners.some((winner) => winner.name === player2.name)
+
+      if (isPlayerInScoreTable) {
+        store.winners = store.winners.map((winner) => {
+          if (winner.name === player2.name) {
+            return { ...winner, wins: player2.wins }
+          }
+
+          return winner
+        })
+      } else {
+        store.winners.push({ name: player2.name, wins: player2.wins })
+      }
+
+      return player1.id
+    }
+
+    return -1
   }
 
   setFirstTurn(): void {

@@ -7,6 +7,7 @@ export default interface Store {
   rooms: Map<number, Room>
   connections: Map<WebSocket, number>
   gamesCount: number
+  winners: Array<{ name: string; wins: number }>
 }
 
 export const store: Store = {
@@ -14,4 +15,5 @@ export const store: Store = {
   rooms: new Map<number, Room>(),
   connections: new Map<WebSocket, number>(),
   gamesCount: 0,
+  winners: [],
 }

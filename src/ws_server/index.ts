@@ -12,6 +12,7 @@ import createRoom from '../handlers/createRoom'
 import { store } from '../store'
 import { updateRoom } from '../handlers/updateRoom'
 import { createGame } from '../handlers/createGame'
+import updateScore from '../handlers/updateScore'
 
 interface WebSocketOptions {
   port: number
@@ -28,6 +29,10 @@ export class WebSocketServer extends EventEmitter {
   }
 
   start(): void {
+    this.wss.on('close', () => {
+      console.log('WebSocket server is off now')
+    })
+
     this.wss.on('connection', (ws) => {
       console.log('new player has connected')
 
@@ -37,27 +42,31 @@ export class WebSocketServer extends EventEmitter {
         if (request.type === 'reg') {
           const newPlayer = createUser(request as LoginRequest, ws)
           ws.send(newPlayer.registrationResponse)
-          console.log(`new player, also known as ${newPlayer.name} is created`)
+          console.log(`reg: new player, also known as ${newPlayer.name} is created`)
 
           this.wss.clients.forEach((client) => {
             client.send(updateRoom())
           })
+          console.log('update_room: room list is updated ')
+
+          updateScore()
+          console.log('update_winners: winners list is updated ')
         }
 
         if (request.type === 'create_room') {
           const playerId = store.connections.get(ws)
 
-          const proceed = !Array.from(store.rooms.values()).some(
-            (room) => room.playerId === playerId,
-          )
+          const proceed = true
 
           if (proceed) {
             const newRoom = createRoom(playerId ?? -1)
-            console.log(`new room ${newRoom.id} is created`)
+            console.log(`create_game: new room ${newRoom.id} is created`)
 
             this.wss.clients.forEach((client) => {
               client.send(updateRoom())
             })
+
+            console.log('update_room: room list is updated ')
           }
         }
 
@@ -71,18 +80,31 @@ export class WebSocketServer extends EventEmitter {
 
             if (destinationRoom !== undefined) {
               const firstPlayer = destinationRoom.players[0]
+
+              if (firstPlayer.id === playerId) {
+                return
+              }
+
               destinationRoom.addPlayerToRoom(playerId)
-              console.log(`Player: ${playerId} is added to the room ${roomId.indexRoom}`)
+              console.log(
+                `add_user_to_room: Player: ${playerId} is added to the room ${roomId.indexRoom}`,
+              )
 
               ws.send(createGame(playerId, roomId.indexRoom))
               firstPlayer.ws.send(createGame(firstPlayer.id, roomId.indexRoom))
-              console.log(`Player: ${firstPlayer.id} is added to the room ${roomId.indexRoom}`)
-              console.log('Game is created')
+              console.log(
+                `add_user_to_room: Player: ${firstPlayer.id} is added to the room ${roomId.indexRoom}`,
+              )
+              console.log('start_game: Game is created')
             }
 
             this.wss.clients.forEach((client) => {
               client.send(updateRoom())
             })
+            console.log('update_room: room list is updated ')
+
+            updateScore()
+            console.log('update_winners: winners list is updated ')
           }
         }
 
@@ -145,8 +167,14 @@ export class WebSocketServer extends EventEmitter {
           )[0]
 
           if (opponent !== undefined && proceed) {
+            console.log(`attack: Player ${attackRequest.data.indexPlayer} tries to attack`)
+
             const { x, y } = attackRequest.data
             const result = opponent.checkAttack(x, y)
+
+            if (result === 'same') {
+              return
+            }
 
             const response = {
               type: 'attack',
@@ -184,8 +212,13 @@ export class WebSocketServer extends EventEmitter {
           )[0]
 
           if (opponent !== undefined) {
+            console.log(`attack: Player ${attackRequest.data.indexPlayer} tries to attack`)
             const { result, x, y } = opponent.checkRandomCell()
-            console.log(result, x, y)
+
+            if (result === 'same') {
+              return
+            }
+
             const response = {
               type: 'attack',
               data: JSON.stringify({

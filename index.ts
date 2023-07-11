@@ -9,4 +9,5 @@ const PORT = Number(process.env.PORT ?? 8181)
 console.log(`Start static http server on the ${PORT} port!`)
 httpServer.listen(PORT)
 
-void new WebSocketServer({ port: WS_PORT })
+const ws = new WebSocketServer({ port: WS_PORT })
+console.log(`WebSocket server starts on the ${WS_PORT} port, ${JSON.stringify(ws.wss.address())}`)
